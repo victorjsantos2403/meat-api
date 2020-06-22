@@ -4,11 +4,14 @@ exports.Router = void 0;
 const restify_errors_1 = require("restify-errors");
 const events_1 = require("events");
 class Router extends events_1.EventEmitter {
+    envelop(document) {
+        return document;
+    }
     render(response, next) {
         return (document) => {
             if (document) {
                 this.emit('beforeRender', document);
-                response.json(document);
+                response.json(this.envelop(document));
             }
             else {
                 throw new restify_errors_1.NotFoundError('Documento não encontrado');
@@ -19,14 +22,16 @@ class Router extends events_1.EventEmitter {
     renderAll(response, next) {
         return (documents) => {
             if (documents) {
-                documents.forEach(d => {
+                documents.forEach((document, index, array) => {
                     this.emit('beforeRender', document);
+                    array[index] = this.envelop(document);
                 });
                 response.json(documents);
             }
             else {
                 response.json([]);
             }
+            return next();
         };
     }
 }
